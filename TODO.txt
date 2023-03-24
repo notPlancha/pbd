@@ -1,4 +1,5 @@
-1 - formulação:
-    falta dizer quais os MAPD que demos em aula
+1 - formulacao: 
+    Descricao de colunas
+    resto das base de dados
 Geral: 
     Organizar novo documento
