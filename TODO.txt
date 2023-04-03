@@ -4,5 +4,6 @@
     descrever o jogo melhor
     Por selects pra ficar melhor visivel as colunas
     fazer schema
+    tratar duplicados (https://www.kaggle.com/code/abaojiang/eda-on-game-progress)
 Geral: 
     Organizar novo documento

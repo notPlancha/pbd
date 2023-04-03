@@ -2,3 +2,5 @@ data/
 .ipynb_*/
 .virtual_*/
 *.bkp
+temp/
+temp.*
