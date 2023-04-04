@@ -1,4 +1,9 @@
-1 - formulação:
-    falta dizer quais os MAPD que demos em aula
+1 - formulacao: 
+    Descricao de colunas
+    resto das base de dados
+    descrever o jogo melhor
+    Por selects pra ficar melhor visivel as colunas
+    fazer schema
+    tratar duplicados (https://www.kaggle.com/code/abaojiang/eda-on-game-progress)
 Geral: 
     Organizar novo documento
