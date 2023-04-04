@@ -1,6 +1,4 @@
 1 - formulacao: 
-    Descricao de colunas
-    resto das base de dados
     descrever o jogo melhor
     Por selects pra ficar melhor visivel as colunas
     fazer schema
