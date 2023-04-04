@@ -2,20 +2,22 @@ from dataclasses import dataclass
 from typing import Optional
 from pyspark.sql import SparkSession
 from pyspark.sql.dataframe import DataFrame
+from pyspark.sql.types import StructType
 
 @dataclass
 class csvFile:
     path: str
-    shema: Optional[str] = None
+    schema: Optional[StructType] = None
     _isRead: bool = False
     df: Optional[DataFrame] = None
-    def read(self, spark: SparkSession, force = False, infer = None, header = True, **kwargs):
+    def read(self, spark: SparkSession, force = False, allStr = False, infer =False, header = True, **kwargs):
         assert not force and not self._isRead, "Already read, use force = True to overwrite"
-        # defaults infer is there's no shema
-        if infer is None and self.shema is None: infer = False
-        if infer is True or infer is False: 
-            self.df = spark.read.csv(self.path, inferSchema = infer, header = header, **kwargs)
-        elif self.shema is not None:
-            spark.read.csv(self.path, shema = self.shema, header = header, **kwargs)
-        self._idRead = True
+        if infer and allStr: raise ValueError("infer and allStr are contraditory")
+        if infer or allStr:
+            self.df = spark.read.csv(self.path, inferSchema = not allStr, header = header, **kwargs)
+        elif self.schema is not None:
+            self.df = spark.read.csv(self.path, schema = self.schema, header = header, **kwargs)
+        else: 
+            raise ValueError("no schema for csv found, use infer=True or allStr=True if there's none")
+        self._isRead = True
         return self.df

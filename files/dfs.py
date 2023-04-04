@@ -1,8 +1,9 @@
-from files import csvFile
-test               = csvFile(r".\data\test.csv")
-sample_submissions = csvFile(r".\data\sample_submission.csv")
-train_labels       = csvFile(r".\data\train_labels.csv")
-train              = csvFile(r".\data\train.csv")
+from files import csvFile, shemas as s
+
+test               = csvFile(r".\data\test.csv", s.test)
+sample_submissions = csvFile(r".\data\sample_submission.csv", s.sample_sub)
+train_labels       = csvFile(r".\data\train_labels.csv", s.train_labs)
+train              = csvFile(r".\data\train.csv", s.train)
 
 CsvFiles = [test, sample_submissions, train_labels, train]
 

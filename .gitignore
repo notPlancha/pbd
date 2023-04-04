@@ -4,4 +4,5 @@ data/
 *.bkp
 temp/
 temp.*
+__pycache__/
 *.jupyterlab-workspace
