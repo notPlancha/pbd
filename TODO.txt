@@ -1,7 +1,9 @@
 1 - formulacao: 
     descrever o jogo melhor
-    Por selects pra ficar melhor visivel as colunas
-    fazer schema
-    tratar duplicados (https://www.kaggle.com/code/abaojiang/eda-on-game-progress)
+    Por selects pra ficar melhor visivel as colunas nos apropriados
+2 - cleanup:
+    tratar duplicados e outros (https://www.kaggle.com/code/abaojiang/eda-on-game-progress)
+    descrição da transformação
 Geral: 
-    Organizar novo documento
+    relatorio
+    ctrl f TODO pra ter a certeza
