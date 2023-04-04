@@ -11,5 +11,6 @@ def readAllCsvs(spark, force = False, **kwargs):
         try:
             i.read(spark, force = force, **kwargs)
         except AssertionError:
+            print(i.path, "already read, skipping (use force = True to read it anyways")
             continue
     return [i.df for i in CsvFiles]
