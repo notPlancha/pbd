@@ -5,9 +5,7 @@ sparkBuilder = SparkSession.builder \
     .appName('pbd') \
     .config("spark.sql.repl.eagerEval.enabled", True) \
     .config("spark.sql.repl.eagerEval.truncate", 50) \
-    .config("spark.sql.repl.eagerEval.maxNumRows", 50) \
-    .config("spark.driver.memory", "4g") \
-    .config("spark.executer.memory", "4g")
+    .config("spark.sql.repl.eagerEval.maxNumRows", 50)
 spark: SparkSession = sparkBuilder.getOrCreate()
 
 def reload(spark):

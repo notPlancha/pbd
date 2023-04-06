@@ -41,12 +41,6 @@ def agg1(df):
         .agg(
             max(col("index")).alias("max_index_to_sum"),
             max(col("elapsed_time_h")).alias("total_time_h"),
-            # avg(
-            #     when(
-            #         col("diff_elapsed_per_event_ms") != 0,
-            #         col("diff_elapsed_per_event_ms")
-            #     )
-            # ).alias("avg diff elapsed ms/event"),
             cnt_cond(
                 (col("event_name") == "observation_click") &
                 (col("fqid").isin([
@@ -75,7 +69,7 @@ def agg1(df):
                 (col("event_name") == "notebook_click") & 
                 (col("name").isin(["prev", "next", "basic"]))
             ).alias("notebook_clicks"),
-            collect_list(col("text")).alias("texts_to_treat"), # to check what type it is
+            collect_set(col("text")).alias("texts_to_treat"), # to check what type it is
             avg(col("elapsed_diff_ms")).alias("avg_elapsed_diff_ms"),
             avg(col("hover_duration")).alias("avg_hover"),
             first(col("fullscreen"), ignorenulls=True).alias("fullscreen"),
@@ -85,8 +79,18 @@ def agg1(df):
 def agg2(df):
     return df.groupby("session_id").agg(
         max("max_index_to_sum").alias("max_index"),
-        min(when(col("level_group") == "0-4"), 1/col("total_time_h")).alias("inv_total_time_h_0-4"),
-        min(when(col("level_group") == "5-12"), 1/col("total_time_h")).alias("inv_total_time_h_5-12"),
+        min(
+            when(
+                col("level_group") == "0-4", 
+                1/col("total_time_h")
+            )
+        ).alias("inv_total_time_h_0-4"),
+        min(
+            when(
+                col("level_group") == "5-12", 
+                1/col("total_time_h")
+            )
+        ).alias("inv_total_time_h_5-12"),
         min(1/col("total_time_h")).alias("inv_total_time_h"),
         sum("obs_opcional_to_sum").alias("obs_opcional"),
         sum("obs_no_in_to_sum").alias("obs_no_in"),
@@ -95,61 +99,101 @@ def agg2(df):
         first(col("fullscreen")).alias("fullscreen"),
         first(col("hq")).alias("hq"),
         first(col("music")).alias("music"),
-        avg(col("hover_duration")).alias("avg_hover"),
+        avg(col("avg_hover")).alias("avg_hover"), #with this method it will make the average per event per level_group then an avg of that. that is fine for me, and maybe even preferable
+        collect_set(col("texts_to_treat")).alias("sets_of_texts_to_get_type"),
+        avg(
+            when(
+                col("event_name") == "cutscene_click",
+                col("avg_elapsed_diff_ms")
+            )
+        ).alias("avg_elapsed_diff_ms_cutscene"),
+        avg(
+            when(
+                col("event_name") == "person_click",
+                col("avg_elapsed_diff_ms")
+            )
+        ).alias("avg_elapsed_diff_ms_person"),
+        avg(
+            when(
+                col("event_name") == "navigate_click",
+                col("avg_elapsed_diff_ms")
+            )
+        ).alias("avg_elapsed_diff_ms_navigate")
+    )
+# def elapsed_to_diff(karr: DataFrame) -> DataFrame:
+#     lasldlasd = time_paseed(karr.select("elapsed_time"))
+#     labels_udf = udf(lambda indx: lasldlasd[indx-1], IntegerType())
+#     return karr.withColumn('elapsed_diff_ms', labels_udf('id'))
+
+# def time_paseed(a):
+#     kard = a.collect()
+#     lss = 0
+#     lastos = []
+#     for i in kard:
+#         try:
+#             lastos.append(kard[lss+1][0] - i[0])
+#         except IndexError:
+#             lastos.append(0)
+#         lss+= 1
+#     return lastos
+
+
         
-        # TODO missing texts_to_treat, para juntar listas pra uma unica
-        # avg_elapsed_diff_ms per event (cutscene, movement and person (i think)),
-        # 
-def elapsed_to_diff(karr: DataFrame) -> DataFrame:
-    lasldlasd = time_paseed(karr.select("elapsed_time"))
-    labels_udf = udf(lambda indx: lasldlasd[indx-1], IntegerType())
-    return karr.withColumn('elapsed_diff_ms', labels_udf('id'))
+def elapsed_to_diff(df: DataFrame, old, new):
+    return df.withColumn(new, col(old) - lag(col(old), offset=1, default=0) \
+                         .over(Window.orderBy("id"))
+                        )
 
-def time_paseed(a):
-    kard = a.collect()
-    lss = 0
-    lastos = []
-    for i in kard:
-        try:
-            lastos.append(kard[lss+1][0] - i[0])
-        except IndexError:
-            lastos.append(0)
-        lss+= 1
-    return lastos
+# def elapsed_to_diff_per_group(df: DataFrame, spark) -> DataFrame:
+#     emp_RDD = spark.sparkContext.emptyRDD()
+#     columns_ret = df.schema
+#     columns_ret.add(StructField('diff_elapsed_per_event_ms', IntegerType(), True))
+#     df_ret = spark.createDataFrame(data = emp_RDD, schema = columns_ret)
+#     for i in df.select("session_id").distinct().toLocalIterator():
+#        arraysalvo = time_paseed_group(df.filter(f"session_id == {i[0]}").select("event_name","id_new","elapsed_time"))
+#        labels_array = F.udf(lambda indx: arraysalvo[indx-1][2], IntegerType())
+#        df_temp_toAdd = df.filter(f"session_id =={i[0]}").withColumn("id_local",row_number().over(Window.orderBy(monotonically_increasing_id())))
+#        df_temp_toAdd = df_temp_toAdd.withColumn('diff_elapsed_per_event_ms', labels_array('id_local'))
+#        df_temp_toAdd = df_temp_toAdd.drop('id_local')
+#        df_ret.createOrReplaceTempView("fixa")
+#        df_temp_toAdd.createOrReplaceTempView("tempo")
+#        df_ret = spark.sql("SELECT * FROM tempo UNION SELECT * FROM fixa")
+#     return df_ret
 
-def elapsed_to_diff_per_group(df: DataFrame, spark) -> DataFrame:
-    emp_RDD = spark.sparkContext.emptyRDD()
-    columns_ret = df.schema
-    columns_ret.add(StructField('diff_elapsed_per_event_ms', IntegerType(), True))
-    df_ret = spark.createDataFrame(data = emp_RDD, schema = columns_ret)
-    for i in df.select("session_id").distinct().toLocalIterator():
-       arraysalvo = time_paseed_group(df.filter(f"session_id == {i[0]}").select("event_name","id_new","elapsed_time"))
-       labels_array = F.udf(lambda indx: arraysalvo[indx-1][2], IntegerType())
-       df_temp_toAdd = df.filter(f"session_id =={i[0]}").withColumn("id_local",row_number().over(Window.orderBy(monotonically_increasing_id())))
-       df_temp_toAdd = df_temp_toAdd.withColumn('diff_elapsed_per_event_ms', labels_array('id_local'))
-       df_temp_toAdd = df_temp_toAdd.drop('id_local')
-       df_ret.createOrReplaceTempView("fixa")
-       df_temp_toAdd.createOrReplaceTempView("tempo")
-       df_ret = spark.sql("SELECT * FROM tempo UNION SELECT * FROM fixa")
-    return df_ret
+# def time_passed_group(a):
+#     kard = a.collect()
+#     lss = 0
+#     lastos = []
+#     for i in kard:
+#         try:
+#           if i[0] == kard[lss+1][0]:
+#             lastos.append([i[0],i[1],kard[lss+1][2] - i[2]])
+#           else:
+#             if i[0] == kard[lss-1][0]:
+#               lastos.append([i[0],i[1],lastos[-1][2]])
+#             else:
+#               lastos.append([i[0],i[1],i[2]])
+#         except IndexError:
+#             lastos.append([i[0],i[2],lss-lss])
+#         lss+= 1
+#     return lastos
 
-def time_passed_group(a):
-    kard = a.collect()
-    lss = 0
-    lastos = []
-    for i in kard:
-        try:
-          if i[0] == kard[lss+1][0]:
-            lastos.append([i[0],i[1],kard[lss+1][2] - i[2]])
-          else:
-            if i[0] == kard[lss-1][0]:
-              lastos.append([i[0],i[1],lastos[-1][2]])
-            else:
-              lastos.append([i[0],i[1],i[2]])
-        except IndexError:
-            lastos.append([i[0],i[2],lss-lss])
-        lss+= 1
-    return lastos
-        
 def typeOfText(df: DataFrame) -> DataFrame:
-    raise NotImplementedError()
+    return df.withColumn(
+        "texts_to_get_type", 
+        flatten(col("sets_of_texts_to_get_type"))
+    ).withColumn("type_of_script",
+        when(
+            array_contains(
+                col("texts_to_get_type"), "Meetings are BORING!"
+            ), "normal"
+        ).when(
+            array_contains(
+                col("texts_to_get_type"), "Sure!"
+            ), "dry"
+        ).when(
+            array_contains(
+                col("texts_to_get_type"), "Do I have to?"
+            ), "nohumor"
+        ).otherwise("noskark")
+    ).drop("texts_to_get_type", "sets_of_texts_to_get_type")

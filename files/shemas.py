@@ -16,9 +16,9 @@ train = StructType([StructField('session_id', LongType(), True),
                      StructField('fqid', StringType(), True),
                      StructField('room_fqid', StringType(), True),
                      StructField('text_fqid', StringType(), True),
-                     StructField('fullscreen', BooleanType(), True),
-                     StructField('hq', BooleanType(), True),
-                     StructField('music', BooleanType(), True),
+                     StructField('fullscreen', IntegerType(), True),
+                     StructField('hq', IntegerType(), True),
+                     StructField('music', IntegerType(), True),
                      StructField('level_group', StringType(), True)])
 
 test = StructType([StructField('session_id', LongType(), True),
@@ -41,10 +41,10 @@ test = StructType([StructField('session_id', LongType(), True),
                      StructField('hq', IntegerType(), True),
                      StructField('music', IntegerType(), True),
                      StructField('level_group', StringType(), True),
-                     StructField('session_level', StringType(), True)])
+                     StructField('session_level', IntegerType(), True)])
 
 train_labs = StructType([StructField('session_id', StringType(), True),
                      StructField('correct', IntegerType(), True)])
 
 sample_sub = StructType([StructField('session_id', StringType(), True),
-                     StructField('correct', IntegerType(), True)])
+                     StructField('correct', IntegerType(), True), StructField('session_level', IntegerType(), True)])
