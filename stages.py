@@ -71,7 +71,7 @@ def agg1(df):
             ).alias("notebook_clicks"),
             collect_set(col("text")).alias("texts_to_treat"), # to check what type it is
             avg(col("elapsed_diff_ms")).alias("avg_elapsed_diff_ms"),
-            avg(col("hover_duration")).alias("avg_hover"),
+            # avg(col("hover_duration")).alias("avg_hover_"),
             first(col("fullscreen"), ignorenulls=True).alias("fullscreen"),
             first(col("hq"), ignorenulls=True).alias("hq"),
             first(col("music"), ignorenulls=True).alias("music"),
@@ -99,7 +99,7 @@ def agg2(df):
         first(col("fullscreen")).alias("fullscreen"),
         first(col("hq")).alias("hq"),
         first(col("music")).alias("music"),
-        avg(col("avg_hover")).alias("avg_hover"), #with this method it will make the average per event per level_group then an avg of that. that is fine for me, and maybe even preferable
+        # avg(col("avg_hover_")).alias("avg_hover"), #with this method it will make the average per event per level_group then an avg of that. that is fine for me, and maybe even preferable
         collect_set(col("texts_to_treat")).alias("sets_of_texts_to_get_type"),
         avg(
             when(
