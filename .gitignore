@@ -6,3 +6,4 @@ temp/
 temp.*
 __pycache__/
 *.jupyterlab-workspace
+*.parquet
