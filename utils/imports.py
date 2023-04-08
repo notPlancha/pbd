@@ -9,7 +9,7 @@ import numpy as np
 import seaborn as sns
 from pyspark.ml import Pipeline, Transformer
 from collections.abc import Iterable
-from typing import Callable
+from typing import Callable, Type
 from importlib import reload
 import sys
 from pyspark.sql.types import *
