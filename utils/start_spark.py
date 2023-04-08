@@ -1,5 +1,8 @@
 from pyspark.sql import SparkSession
-
+import os
+import sys
+os.environ['PYSPARK_PYTHON'] = sys.executable
+os.environ['PYSPARK_DRIVER_PYTHON'] = sys.executable
 sparkBuilder = SparkSession.builder \
     .master('local[1]') \
     .appName('pbd') \
@@ -9,6 +12,7 @@ sparkBuilder = SparkSession.builder \
     .config("spark.driver.memory","4g") \
     .config("spark.executer.memory","4g")
 spark: SparkSession = sparkBuilder.getOrCreate()
+
 
 def reload(spark):
     spark.stop()

@@ -120,63 +120,12 @@ def agg2(df):
             )
         ).alias("avg_elapsed_diff_ms_navigate")
     )
-# def elapsed_to_diff(karr: DataFrame) -> DataFrame:
-#     lasldlasd = time_paseed(karr.select("elapsed_time"))
-#     labels_udf = udf(lambda indx: lasldlasd[indx-1], IntegerType())
-#     return karr.withColumn('elapsed_diff_ms', labels_udf('id'))
-
-# def time_paseed(a):
-#     kard = a.collect()
-#     lss = 0
-#     lastos = []
-#     for i in kard:
-#         try:
-#             lastos.append(kard[lss+1][0] - i[0])
-#         except IndexError:
-#             lastos.append(0)
-#         lss+= 1
-#     return lastos
-
 
         
 def elapsed_to_diff(df: DataFrame, old, new):
     return df.withColumn(new, col(old) - lag(col(old), offset=1, default=0) \
                          .over(Window.orderBy("id"))
                         )
-
-# def elapsed_to_diff_per_group(df: DataFrame, spark) -> DataFrame:
-#     emp_RDD = spark.sparkContext.emptyRDD()
-#     columns_ret = df.schema
-#     columns_ret.add(StructField('diff_elapsed_per_event_ms', IntegerType(), True))
-#     df_ret = spark.createDataFrame(data = emp_RDD, schema = columns_ret)
-#     for i in df.select("session_id").distinct().toLocalIterator():
-#        arraysalvo = time_paseed_group(df.filter(f"session_id == {i[0]}").select("event_name","id_new","elapsed_time"))
-#        labels_array = F.udf(lambda indx: arraysalvo[indx-1][2], IntegerType())
-#        df_temp_toAdd = df.filter(f"session_id =={i[0]}").withColumn("id_local",row_number().over(Window.orderBy(monotonically_increasing_id())))
-#        df_temp_toAdd = df_temp_toAdd.withColumn('diff_elapsed_per_event_ms', labels_array('id_local'))
-#        df_temp_toAdd = df_temp_toAdd.drop('id_local')
-#        df_ret.createOrReplaceTempView("fixa")
-#        df_temp_toAdd.createOrReplaceTempView("tempo")
-#        df_ret = spark.sql("SELECT * FROM tempo UNION SELECT * FROM fixa")
-#     return df_ret
-
-# def time_passed_group(a):
-#     kard = a.collect()
-#     lss = 0
-#     lastos = []
-#     for i in kard:
-#         try:
-#           if i[0] == kard[lss+1][0]:
-#             lastos.append([i[0],i[1],kard[lss+1][2] - i[2]])
-#           else:
-#             if i[0] == kard[lss-1][0]:
-#               lastos.append([i[0],i[1],lastos[-1][2]])
-#             else:
-#               lastos.append([i[0],i[1],i[2]])
-#         except IndexError:
-#             lastos.append([i[0],i[2],lss-lss])
-#         lss+= 1
-#     return lastos
 
 def typeOfText(df: DataFrame) -> DataFrame:
     return df.withColumn(

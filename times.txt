@@ -1,0 +1,24 @@
+lr
+runtime: 0:00:17.141439
+runtime: 0:00:16.799872
+runtime: 0:00:16.906908
+runtime: 0:00:16.743193
+runtime: 0:00:16.867307
+svm
+runtime: 0:00:41.469907
+runtime: 0:00:41.668287
+runtime: 0:00:42.134964
+runtime: 0:00:41.972929
+runtime: 0:00:41.908028
+dt
+runtime: 0:00:10.230904
+runtime: 0:00:10.106833
+runtime: 0:00:10.055812
+runtime: 0:00:09.962113
+runtime: 0:00:10.103350
+rf
+runtime: 0:00:15.598070
+runtime: 0:00:15.664949
+runtime: 0:00:15.323530
+runtime: 0:00:15.247371
+runtime: 0:00:15.768492
