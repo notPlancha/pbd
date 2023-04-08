@@ -1,0 +1,127 @@
+\documentclass[justified, 11pt]{scrartcl}
+
+\input{structure.tex}
+\input{commands.tex}
+
+\title{	
+	\normalfont\normalsize
+	\textsc{ISCTE-IUL \\ Licenciatura em Ciência de Dados}\\
+	\vspace{20pt} 
+	\rule{\linewidth}{0.5pt}\\
+	\vspace{20pt}
+	{\huge Previsão do desempenho de estudantes ao jogar}\\ 
+  \vspace{16pt} 
+  {\large Trabalho realizado no âmbito da Unidade Curricular Introdução a Processamento de Big Data do 2º ano em 2022/2023 da Licenciatura em Ciência de Dados}\\
+	\vspace{12pt}
+	\rule{\linewidth}{2pt}\\
+	\vspace{20pt} 
+}
+\author{
+  André Plancha, 105289 \\
+  \email{Andre\_Plancha@iscte-iul.pt}\\
+  Allan Kardec Rodrigues, 103380 \\
+  \email{aksrs@iscte-iul.pt} \\
+  \vspace{30pt}
+}
+\date{7 Abril 2023 \\ Versão 1.0.0}
+
+\begin{document}
+  \thispagestyle{empty}
+  \maketitle
+  \pagebreak
+  %\tableofcontents
+  %\pagebreak
+  \section{Introdução}
+  \textbf{Jo Wilder and the Capitol Case} é um jogo educacional sobre a história de Wisconsin, direcionado a crianças com idades entre os 8 e os 12 anos. O jogo de aventura e investigação segue a hsitória de Jo Wilder, que descobre histórias sobre artefactos da história do estado, investigando objetos, e encontrando pessoas. O jogo pode ser jogado no site oficial do PBD Wisconsin Education\footnote{\url{pbswisconsineducation.org/jowilder/play-the-game/}}. Esta competição está a ser promovida pela plataforma kaggle\footnote{\url{https://www.kaggle.com/competitions/predict-student-performance-from-game-play}}.
+
+  \begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\linewidth]{jo_wilder.png}
+    \caption{Imagem do menu principal}
+    \label{fig:jo_wilder}
+  \end{figure}
+
+  Este projeto tem como objetivo prever como os jogadores vão responder às 18 questões que o jogo presenta, baseado na sua atividade durante o tal, implementando uma solução computacional para estudo e análise de dados de grande dimensão. Para isso, vamos usar Apache Spark\texttrademark e \textit{PySpark} para processar os dados e a biblioteca \textit{MLlib} para a criação de um modelo de aprendizagem supervisionada.
+
+  \section{Análise exploratória dos dados}
+  
+  A competição disponibiliza um conjunto de ficheiros de dados, nos quais 2 são de interesse: \texttt{train.csv} e \texttt{train\_labels.csv}, elas tendo as variáveis de interesse e as respetivas respostas, respetivamente. \texttt{train.csv} contém as seguintes colunas\footnote{Mais informações sobre cada coluna está no site da competição, e no EDA em anexo}, entre outras:
+  \begin{itemize}
+    \item \texttt{session\_id}: Identificador da sessão do evento.
+    \item \texttt{index}: Índice do evento na sessão.
+    \item \texttt{elapsed\_time}: Tempo decorrido desde o início da sessão em \si{\milli\second}.
+    \item \texttt{event\_name}: Tipo do evento.
+    \item \texttt{name}: Específicos do tipo de evento.
+    \item \texttt{hover\_duration}: O tempo de permanência do cursor sobre um objeto, em \si{\milli\second}, se aplicável.
+    \item \texttt{text}: O diálogo/monólogo que o jogador viu no o evento, se aplicável
+    \item \texttt{fqid}: O identificador único do evento.
+    \item \texttt{fullscreen}: Se o jogador está em modo de ecrã inteiro.
+    \item \texttt{hq}: Se o jogo está em alta qualidade.
+    \item \texttt{music}: Se a música do jogo está ligada.
+    \item \texttt{level\_group}: O grupo de níveis a que o evento pertence.
+  \end{itemize}
+  ; e \texttt{train\_labels.csv} contém as seguintes colunas:
+  \begin{itemize}
+    \item \texttt{session\_id}: Identificador da sessão do evento, em conjunto da pergunta que se pretende responder.
+    \item \texttt{correct}: Se a pergunta está correta ou não.
+  \end{itemize}
+
+  Perante as colunas, como há uma incompatibilidade entre perguntas e respostas, nós decidimos criar tabela com cada sessão, características de tal (recursos) e as suas respostas, de forma usar classificação para prever as respostas.
+
+  Para criar estes recursos, foi necessário de uma análise dos tipos de eventos disponíveis. Uma análise mais aprofundada encontra-se em anexo, mas para resumir, os eventos estão dividídos em 3 categorias: Exploração, exposição e revisao. Exploração são os eventos onde a personagem se move, interage com objetos opcionais, tenta entrar em zonas ainda não acedidadas, etc... Exposição são os eventos onde a personagem interage com personagens, interage com objetivos principais, e é onde se encontra o que o utilizador aprende. Revisão são os eventos de quando o utilizador está perdido e portanto precisa de apoio de qual é o próximo passo.
+
+  A única excepção a estes eventos é o evento \texttt{checkpoint}, representando quando o utilizador começa a responder às perguntas (os eventos das respostas às perguntas não se encontra na tabela). Há 3 zonas onde o utilizador responde às perguntas, e na base de dados as 3 zonas são divididas pelos \texttt{checkpoint}s, e cada zona está rotulada pelo seu \texttt{level\_group}.
+
+  \subsection{Análise e limpeza}
+  Nós usámos como base de limpeza a nossa análise, e a análise de erros de um utilizador do kaggle\footnote{\url{https://www.kaggle.com/code/abaojiang/eda-on-game-progress}}. Na \autoref{tab:problemas} encontra-se os problemas encontrados e as soluções que nós usámos para os resolver.
+  \begin{table}[htb]
+    \centering
+    \caption{Resolução dos problemas}
+    \label{tab:problemas}
+    \setlength{\extrarowheight}{7pt}
+    \begin{tabulary}{\textwidth}{ L L L L }
+
+      \toprule
+      Erros & Problemas & Solução & Notas \\
+      \midrule
+      Tempo recorrido recuáva no tempo & Cálculo de tempos entre eventos pode ficar inválido & Transformar em diferenças entre os tempos e tornar zero quando negativo & Máximo desta coluna continua afetado \\
+      Saltos de \texttt{index} & O índice do evento não é sequencial & - & Suspeitamos que os eventos aconteceram na mesma, só não foram anotados\\
+      Sessões com menos ou mais de 3 checkpoints & As sessões são inválidas e dificultam análise & Foram removidas essas sessões & \\
+      Tempos de jogo demasiado elevados comparado com a maioria dos tempos & Dificulta o processo de aprendizagem & Tempos de jogo foram transformados e normalizados &
+    \end{tabulary}
+  \end{table}
+
+  Algumas das limpezas foram úteis na criação dos recursos, enquanto que outras apenas limparam a base de dados. Nós não fizemos (nem registámos) algumas das limpezas, pois não seria benéfico para a criação dos recursos necessários.
+
+  Algo importante a notar também é que os roteiros dos jogos são diferentes para cada utilizador, entre 4 roteiros diferentes: \textit{dry}, \textit{nohumor}, \textit{nosnark}, e \textit{normal}. Um exemplo pode ser encontrado na \autoref{fig:textDiffs}. A diferença entre roteiros é mínima na opinião dos autores, mas decidimos usar esta informação na mesma.
+  \begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\linewidth]{text_differences.png}
+    \caption{Diferenças entre roteiros}
+    \label{fig:textDiffs}
+  \end{figure}
+  \subsection{Exploração}
+  TODO
+
+  \subsection{Recursos}
+  As features que nós fizemos para cada sessão são entre as seguintes:
+  \begin{itemize}
+    \item O index máximo, que indica o número de eventos de cada sessão;
+    \item Se a sessão esteve em tela cheia;
+    \item Se a sessão estava em alta qualidade;
+    \item Se a sessão tinha música ligada;
+    \item Quantos objetivos opcionais a sessão interagiu com;
+    \item Quantas salas inacessíveis a sessão tentou entrar em;
+    \item Quantas vezes a sessão reviu o objetivo;
+    \item Tempo médio de leitura do diálogo;
+    \item Tempo médio por movimento do jogador;
+    \item Tipo de roteiro.
+  \end{itemize}
+
+  Os promenores de como foram criadas encontram-se em anexo.
+
+  \subsection{Modelação}
+
+  
+\end{document}
+
