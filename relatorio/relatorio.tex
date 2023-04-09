@@ -23,14 +23,12 @@
   \email{aksrs@iscte-iul.pt} \\
   \vspace{30pt}
 }
-\date{7 Abril 2023 \\ Versão 1.0.0}
+\date{9 Abril 2023 \\ Versão 1.0.0}
 
 \begin{document}
   \thispagestyle{empty}
   \maketitle
   \pagebreak
-  %\tableofcontents
-  %\pagebreak
   \section{Introdução}
   \textbf{Jo Wilder and the Capitol Case} é um jogo educacional sobre a história de Wisconsin, direcionado a crianças com idades entre os 8 e os 12 anos. O jogo de aventura e investigação segue a hsitória de Jo Wilder, que descobre histórias sobre artefactos da história do estado, investigando objetos, e encontrando pessoas. O jogo pode ser jogado no site oficial do PBD Wisconsin Education\footnote{\url{pbswisconsineducation.org/jowilder/play-the-game/}}. Esta competição está a ser promovida pela plataforma kaggle\footnote{\url{https://www.kaggle.com/competitions/predict-student-performance-from-game-play}}.
 
@@ -94,15 +92,23 @@
   Algumas das limpezas foram úteis na criação dos recursos, enquanto que outras apenas limparam a base de dados. Nós não fizemos (nem registámos) algumas das limpezas, pois não seria benéfico para a criação dos recursos necessários.
 
   Algo importante a notar também é que os roteiros dos jogos são diferentes para cada utilizador, entre 4 roteiros diferentes: \textit{dry}, \textit{nohumor}, \textit{nosnark}, e \textit{normal}. Um exemplo pode ser encontrado na \autoref{fig:textDiffs}. A diferença entre roteiros é mínima na opinião dos autores, mas decidimos usar esta informação na mesma.
-  \begin{figure}[h]
+  \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\linewidth]{text_differences.png}
     \caption{Diferenças entre roteiros}
     \label{fig:textDiffs}
   \end{figure}
-  \subsection{Exploração}
-  TODO
 
+  \subsection{Processo}
+  O processo da implementação da solução computacional pode ser descrito como caótico, sendo que como os dados não vieram com uma estrutura clara, foi necessário uma representação dos dados adaptada previamente ao análise de relações entre os dados; ou seja a criação de recursos teóricos foi executada \textit{à priori}, e a análise de colineariadade e de relação foi feita \textit{ad hoc}. Por outras palavras, a análise de dados foi feita ao longo do processo de criação de recursos, e a criação destes foram feitos apenas com análises comportamentais potências invés de análises estatísticas. Ainda assim, a \autoref{fig:processo} pode ser visto o processo que foi seguido.
+
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{processo.png}
+    \caption{Processo}
+    \label{fig:processo}
+  \end{figure}
+  
   \subsection{Recursos}
   As features que nós fizemos para cada sessão são entre as seguintes:
   \begin{itemize}
@@ -120,8 +126,17 @@
 
   Os promenores de como foram criadas encontram-se em anexo.
 
+  \subsection{Exploração}
+  TODO
+  
   \subsection{Modelação}
+  Como processo de modelação, nós usámos aprendizagem supervisionada de classificação multi-rótulo, usando como rótulos cada pergunta certa, ou seja, cada sessão podia ter entre 0 e 18 rótulos. Nós considerámos várias opções de classificação, mas decidimos que a melhor forma para o nosso projeto foi com uma transformação para um problema de classificação binária, usando o método de \textit{binary relevance}.
+  
+  De forma simplificada, para cada rótulo, um modelo binário é treinado, independente dos outros rótulo; se 1 o rótulo é incluido, se 0 não. Esta estratégia fazia sentido, sendo que os nossos rótulo já são binários, o que facilita a modelação, e como temos uma grande quantidade de rótulos, outras estratégias (como \textit{Label Powerset}) não faziam tanto sentido. Ainda assim, pode haver outros métodos mais adequados, como por exemplo \textit{Classifier Chains}, sendo que não deve haver uma indepenência de rótulos.
 
+  TODO métricas
+
+  Nós começámos por treinar 4 modelos, de forma a compará-los e decidir que método usar.
   
 \end{document}
 
