@@ -136,7 +136,7 @@
   \end{figure}
 
   Como se pode opbservar na \autoref{fig:probs}, algumas respostas são muito prováveis de acertar, e poucas são mais prováveis de errar. Notamos que há um acréscimo de perguntas erradas nas questões 5 e 13, sendo que essas são as primeiras do grupo. Ainda assi, não parece haver um padrão claro.
-  \subsection{Modelação}
+  \section{Modelação}
   Como processo de modelação, nós usámos aprendizagem supervisionada de classificação multi-rótulo, usando como rótulos cada pergunta certa, ou seja, cada sessão podia ter entre 0 e 18 rótulos. Nós considerámos várias opções de classificação, mas decidimos que a melhor forma para o nosso projeto foi com uma transformação para um problema de classificação binária, usando o método de \textit{binary relevance}.
   
   De forma simplificada, para cada rótulo, um modelo binário é treinado, independente dos outros rótulo; se 1 o rótulo é incluido, se 0 não. Esta estratégia fazia sentido, sendo que os nossos rótulo já são binários, o que facilita a modelação, e como temos uma grande quantidade de rótulos, outras estratégias (como \textit{Label Powerset}) não faziam tanto sentido. Ainda assim, pode haver outros métodos mais adequados, como por exemplo \textit{Classifier Chains}, sendo que não deve haver uma indepenência de rótulos.
