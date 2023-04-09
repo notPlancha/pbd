@@ -11,7 +11,7 @@
 	\vspace{20pt}
 	{\huge Previsão do desempenho de estudantes ao jogar}\\ 
   \vspace{16pt} 
-  {\large Trabalho realizado no âmbito da Unidade Curricular Introdução a Processamento de Big Data do 2º ano em 2022/2023 da Licenciatura em Ciência de Dados}\\
+  {\large Trabalho realizado no âmbito da Unidade Curricular Processamento de Big Data do 2º ano em 2022/2023 da Licenciatura em Ciência de Dados}\\
 	\vspace{12pt}
 	\rule{\linewidth}{2pt}\\
 	\vspace{20pt} 
@@ -30,7 +30,7 @@
   \maketitle
   \pagebreak
   \section{Introdução}
-  \textbf{Jo Wilder and the Capitol Case} é um jogo educacional sobre a história de Wisconsin, direcionado a crianças com idades entre os 8 e os 12 anos. O jogo de aventura e investigação segue a hsitória de Jo Wilder, que descobre histórias sobre artefactos da história do estado, investigando objetos, e encontrando pessoas. O jogo pode ser jogado no site oficial do PBD Wisconsin Education\footnote{\url{pbswisconsineducation.org/jowilder/play-the-game/}}. Esta competição está a ser promovida pela plataforma kaggle\footnote{\url{https://www.kaggle.com/competitions/predict-student-performance-from-game-play}}.
+  \textbf{Jo Wilder and the Capitol Case} é um jogo educacional sobre a história de Wisconsin, direcionado a crianças com idades entre os 8 e os 12 anos. O jogo de aventura e investigação segue a história de Jo Wilder, que descobre histórias sobre artefactos do passado do estado, investigando objetos, e encontrando pessoas. O jogo pode ser jogado no site oficial do PBD Wisconsin Education\footnote{\url{pbswisconsineducation.org/jowilder/play-the-game/}}. Esta competição está a ser promovida pela plataforma kaggle\footnote{\url{https://www.kaggle.com/competitions/predict-student-performance-from-game-play}}.
 
   \begin{figure}[h]
     \centering
@@ -39,7 +39,7 @@
     \label{fig:jo_wilder}
   \end{figure}
 
-  Este projeto tem como objetivo prever como os jogadores vão responder às 18 questões que o jogo presenta, baseado na sua atividade durante o tal, implementando uma solução computacional para estudo e análise de dados de grande dimensão. Para isso, vamos usar Apache Spark\texttrademark e \textit{PySpark} para processar os dados e a biblioteca \textit{MLlib} para a criação de um modelo de aprendizagem supervisionada.
+  Este projeto tem como objetivo prever como os jogadores vão responder às 18 questões que o jogo apresenta, baseado na sua atividade durante o tal, implementando uma solução computacional para estudo e análise de dados de grande dimensão. Para isso, vamos usar Apache Spark\texttrademark e \textit{PySpark} para processar os dados e a biblioteca \textit{MLlib} para a criação de um modelo de aprendizagem supervisionada.
 
   \section{Análise exploratória dos dados}
   
@@ -51,7 +51,7 @@
     \item \texttt{event\_name}: Tipo do evento.
     \item \texttt{name}: Específicos do tipo de evento.
     \item \texttt{hover\_duration}: O tempo de permanência do cursor sobre um objeto, em \si{\milli\second}, se aplicável.
-    \item \texttt{text}: O diálogo/monólogo que o jogador viu no o evento, se aplicável
+    \item \texttt{text}: O diálogo/monólogo que o jogador viu no evento, se aplicável
     \item \texttt{fqid}: O identificador único do evento.
     \item \texttt{fullscreen}: Se o jogador está em modo de ecrã inteiro.
     \item \texttt{hq}: Se o jogo está em alta qualidade.
@@ -78,7 +78,6 @@
     \label{tab:problemas}
     \setlength{\extrarowheight}{7pt}
     \begin{tabulary}{\textwidth}{ L L L L }
-
       \toprule
       Erros & Problemas & Solução & Notas \\
       \midrule
@@ -134,9 +133,83 @@
   
   De forma simplificada, para cada rótulo, um modelo binário é treinado, independente dos outros rótulo; se 1 o rótulo é incluido, se 0 não. Esta estratégia fazia sentido, sendo que os nossos rótulo já são binários, o que facilita a modelação, e como temos uma grande quantidade de rótulos, outras estratégias (como \textit{Label Powerset}) não faziam tanto sentido. Ainda assim, pode haver outros métodos mais adequados, como por exemplo \textit{Classifier Chains}, sendo que não deve haver uma indepenência de rótulos.
 
-  TODO métricas
+  Para a análise dos nossos modelos, usámos métricas de classificação multi-rótulo, como o \textit{subset accuracy}, \textit{hamming loss}, e \textit{micro-F1}. Usámos também a métrica de avaliação \textit{F1}, estrapulada e adaptada.
 
-  Nós começámos por treinar 4 modelos, de forma a compará-los e decidir que método usar.
+  \textit{Subset accuracy} é uma métrica que mede a percentagem de resultados que todos os rótulos estão certos. Previmos que esta métrica não seira muito útil, sendo que 18 rótulos corretos é muito difícil do nosso modelo conseguir, especialmente com o método de \textit{binary relevance}.
+  $$
+  \uparrow \mathnormal{subset\text{-}accuracy} = \frac{1}{|Y|} \sum_{i=1}^{|Y|}  \left[ 
+    \hat{Y}_i = Y_i
+    \right] 
+  $$
+  \textit{Hamming loss} é uma métrica que mede a percentagem de rótulos que estão errados. Sendo que este mede de forma mais individual, esta métrica é mais útil e direta.
+  $$
+  \downarrow \mathnormal{hamming\text{-}loss} = \frac{1}{|Y|\cdot|L|} \sum_{i=1}^{|Y|} \sum_{l=1}^{|L|} \left[ 
+    \hat{Y}_{i,l} \neq Y_{i,l}
+    \right]
+  $$
+  \textit{Micro-F1} é uma métrica que mede a percentagem de rótulos que estão certos, mas penaliza mais os rótulos que estão errados. Esta métrica é útil mais útil para comparar modelos, em vez de ser útil para avaliar o modelo individualmente.
+
+  $$
+  \uparrow \mathnormal{micro\text{-}}F_1 = \frac{2 TP}{2TP + FP + FN}
+  $$
+  \textit{F1} é uma métrica usada para avaliar modelos de classificação binária, e é uma média ponderada entre a precisão e a revocação. A nossa métrica adaptada faz a média dos vários F1 scores de cada modelo que compoz o algoritmo. Esta métrica é também útil para comparar modelos, pois dá igual importância a cada modelo, enquanto que a mética anterior tem em conta a quantidade de rótulos que cada $X$ tem, no nosso caso isso equivaler às respostas certas, o que pode induzir em erro a métrica.
+
+  $$
+  \uparrow F_1 = \frac{2}{|Y|} \sum_{i=1}^{|Y|} 
+    \frac{\left| Y_i \cap \hat{Y}_i \right|}{| Y_i | + | \hat{Y}_i |}
+  $$
+
   
+  Nós começámos por treinar 4 modelos, de forma a compará-los e decidir que método usar, sendo eles regressão logística, máquna de vetores de suporte linear, árvore de decição e \textit{random forest}, todos eles com o método de \textit{binary relevance}. Os promenores do executado e dos parametros estão em anexo. Os resultados foram os seguintes:
+  %{'subSetAcc': 0.02224242100197829, 'hammingLoss': 0.2477410041169866, 'microF1Measure': 0.8411937081458605, 'regularF1': 0.8239368537828183}
+  %{'subSetAcc': 0.022937496658290115, 'hammingLoss': 0.25165897330790665, 'microF1Measure': 0.8423530374979532, 'regularF1': 0.8284907895850899}
+  %{'subSetAcc': 0.02368603967277977, 'hammingLoss': 0.24395967373029878, 'microF1Measure': 0.8429258291672563, 'regularF1': 0.8268147783725285}
+  %{'subSetAcc': 0.023204833449179275, 'hammingLoss': 0.24422106970361263, 'microF1Measure': 0.844419634409416, 'regularF1': 0.8295224110560213}
+  \begin{table}[H]
+    \centering
+    \caption{Resultados dos modelos}
+    \setlength{\extrarowheight}{0pt}
+    \begin{tabulary}{\textwidth}{ L|r r r r }
+      %\toprule
+      Modelo & \myalign{l}{Subset accuracy $\uparrow$} & \myalign{l}{Hamming loss $\downarrow$} & \myalign{l}{Micro-F1 $\uparrow$} & \myalign{l}{F1 $\uparrow$} \\ \hline
+      Regressão Logística & $0.0222$ & $0.2477$ & $0.8412$ & $0.8239$ \\
+      Máquina de Vetores de Suporte Linear & $0.0229$ & $0.2517$ & $0.8424$ & $0.8285$ \\
+      Árvore de Decisão & $\boldsymbol{0.0237}$ & $\boldsymbol{0.2440}$ & $0.8429$ & $0.8268$ \\
+      Random Forest & $0.0232$ & $0.2442$ & $\boldsymbol{0.8444}$ & $\boldsymbol{0.8295}$ \\
+    \end{tabulary}
+    \label{tab:results}
+  \end{table}
+  
+  Como se pode observar, estes modelos não mostram muita diferença nos resultados, mesmo que a árvore de decisão tenha um resultado melhor nas métricas individuais, e o Random Forest tenha obtido um melhor resultado nas métricas de comparação. Decidimos tentar melhorá-los, tirando proveito destes resultados. Logo, treiná-mos mais 4 modelos \textit{Random Forest}, com parâmetros diferentes, especicamente na estratégia de divisão em cada nó. Mais promenores sobre este processo estão na documentação da classe \textit{RandomForest} \footnote{\url{https://spark.apache.org/docs/latest/api/python/reference/api/pyspark.mllib.tree.RandomForest.html}}. Os resultados foram os seguintes:
+  %{'subSetAcc': 0.024701919478158585, 'hammingLoss': 0.24197544066014365, 'microF1Measure': 0.84481655046291, 'regularF1': 0.8288088968104772}
+  %{'subSetAcc': 0.023204833449179275, 'hammingLoss': 0.24422106970361263, 'microF1Measure': 0.844419634409416, 'regularF1': 0.8295224110560213}
+  %{'subSetAcc': 0.023204833449179275, 'hammingLoss': 0.24422106970361263, 'microF1Measure': 0.844419634409416, 'regularF1': 0.8295224110560213}
+  %{'subSetAcc': 0.02422071325455809, 'hammingLoss': 0.24346658587154765, 'microF1Measure': 0.8448010118874048, 'regularF1': 0.8297927984968329}
+
+  \begin{table}[H]
+    \centering
+    \caption{Resultados dos modelos 2}
+    \setlength{\extrarowheight}{0pt}
+    \begin{tabulary}{\textwidth}{ L|r r r r }
+      %\toprule
+      Modelo & \myalign{l}{Subset accuracy $\uparrow$} & \myalign{l}{Hamming loss $\downarrow$} & \myalign{l}{Micro-F1 $\uparrow$} & \myalign{l}{F1 $\uparrow$} \\ \hline
+      RF - all & $\boldsymbol{0.0247}$ & $\boldsymbol{0.2420}$ & $\boldsymbol{0.84481}$ & $0.8288$ \\
+      RF - sqrt/log2 & $0.0232$ & $0.2442$ & $0.84442$ & $0.8295$ \\
+      RF - onethird & $0.0242$ & $0.2435$ & $0.84480$ & $\boldsymbol{0.8298}$ \\
+    \end{tabulary}
+    \label{tab:results}
+  \end{table}
+
+  Como se pode observar, as diferenças são minúsculas o suficiente que dificilmente se considera um melhor que o outro. Ainda assim, o modelo \textit{RF} com estratégia \textit{all} tem um resultado individual melhor, e \textit{RF} com estratégia \textit{onethird} tem um resultado de comparação melhor. Como os resultados não parecem melhorar tanto assim, e como temos já bons resultados com os modelos apresentados, decidimos não continuar a modelar.
+
+  Pela a análise das matrizes de confusão (em anexo), podemos observar muitas das perguntas sem positivos ou negativos. Isto é devido à própria amosra que tinhamos acesso não ter muitas respostas positivas ou negativas para as perguntas em quastão. Isto devia ter sido verificado antes de começar, e devia ter-se adaptado a forma de divisão em conjunto de treino ou teste, ou devia ter-se usado validação cruzada.
+
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=0.2\textwidth]{confusion.png}
+    \caption{exemplos de matrizes de confusão resultadas por rótulo}
+    \label{fig:confusion_matrix}
+  \end{figure}
+
 \end{document}
 
