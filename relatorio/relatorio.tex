@@ -64,7 +64,7 @@
     \item \texttt{correct}: Se a pergunta está correta ou não.
   \end{itemize}
 
-  Perante as colunas, como há uma incompatibilidade entre perguntas e respostas, nós decidimos criar tabela com cada sessão, características de tal (recursos) e as suas respostas, de forma usar classificação para prever as respostas.
+  Perante as colunas, como há uma incompatibilidade entre perguntas e respostas, nós decidimos criar uma tabela com cada sessão, características de tal (recursos) e as suas respostas, de forma usar classificação para prever as respostas.
 
   Para criar estes recursos, foi necessário de uma análise dos tipos de eventos disponíveis. Uma análise mais aprofundada encontra-se em anexo, mas para resumir, os eventos estão dividídos em 3 categorias: Exploração, exposição e revisao. Exploração são os eventos onde a personagem se move, interage com objetos opcionais, tenta entrar em zonas ainda não acedidadas, etc... Exposição são os eventos onde a personagem interage com personagens, interage com objetivos principais, e é onde se encontra o que o utilizador aprende. Revisão são os eventos de quando o utilizador está perdido e portanto precisa de apoio de qual é o próximo passo.
 
@@ -126,8 +126,16 @@
   Os promenores de como foram criadas encontram-se em anexo.
 
   \subsection{Exploração}
-  TODO
-  
+  Devido à natureza dos nossos dados a exploração não foi executada de uma forma tradicional, sendo que as análises menos teóricas foram feitas após a criação de cada recurso. De qualquer forma, estas encontram-se em anexo. Ainda assim, anotaremos aqui a análise de probabilidades das respostas.
+
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\linewidth]{probs.png}
+    \caption{Probabilidades das respostas}
+    \label{fig:probs}
+  \end{figure}
+
+  Como se pode opbservar na \autoref{fig:probs}, algumas respostas são muito prováveis de acertar, e poucas são mais prováveis de errar. Notamos que há um acréscimo de perguntas erradas nas questões 5 e 13, sendo que essas são as primeiras do grupo. Ainda assi, não parece haver um padrão claro.
   \subsection{Modelação}
   Como processo de modelação, nós usámos aprendizagem supervisionada de classificação multi-rótulo, usando como rótulos cada pergunta certa, ou seja, cada sessão podia ter entre 0 e 18 rótulos. Nós considerámos várias opções de classificação, mas decidimos que a melhor forma para o nosso projeto foi com uma transformação para um problema de classificação binária, usando o método de \textit{binary relevance}.
   
@@ -160,14 +168,14 @@
   $$
 
   
-  Nós começámos por treinar 4 modelos, de forma a compará-los e decidir que método usar, sendo eles regressão logística, máquna de vetores de suporte linear, árvore de decição e \textit{random forest}, todos eles com o método de \textit{binary relevance}. Os promenores do executado e dos parametros estão em anexo. Os resultados foram os seguintes:
+  Nós começámos por treinar 4 modelos, de forma a compará-los e decidir que método usar, sendo eles regressão logística, máquna de vetores de suporte linear, árvore de decição e \textit{random forest}, todos eles com o método de \textit{binary relevance}. Os promenores do executado e dos parametros estão em anexo. Os resultados podem ser observados na \autoref{tab:results}.
   %{'subSetAcc': 0.02224242100197829, 'hammingLoss': 0.2477410041169866, 'microF1Measure': 0.8411937081458605, 'regularF1': 0.8239368537828183}
   %{'subSetAcc': 0.022937496658290115, 'hammingLoss': 0.25165897330790665, 'microF1Measure': 0.8423530374979532, 'regularF1': 0.8284907895850899}
   %{'subSetAcc': 0.02368603967277977, 'hammingLoss': 0.24395967373029878, 'microF1Measure': 0.8429258291672563, 'regularF1': 0.8268147783725285}
   %{'subSetAcc': 0.023204833449179275, 'hammingLoss': 0.24422106970361263, 'microF1Measure': 0.844419634409416, 'regularF1': 0.8295224110560213}
   \begin{table}[H]
     \centering
-    \caption{Resultados dos modelos}
+    \caption{Resultados dos primeiros modelos}
     \setlength{\extrarowheight}{0pt}
     \begin{tabulary}{\textwidth}{ L|r r r r }
       %\toprule
@@ -180,15 +188,14 @@
     \label{tab:results}
   \end{table}
   
-  Como se pode observar, estes modelos não mostram muita diferença nos resultados, mesmo que a árvore de decisão tenha um resultado melhor nas métricas individuais, e o Random Forest tenha obtido um melhor resultado nas métricas de comparação. Decidimos tentar melhorá-los, tirando proveito destes resultados. Logo, treiná-mos mais 4 modelos \textit{Random Forest}, com parâmetros diferentes, especicamente na estratégia de divisão em cada nó. Mais promenores sobre este processo estão na documentação da classe \textit{RandomForest} \footnote{\url{https://spark.apache.org/docs/latest/api/python/reference/api/pyspark.mllib.tree.RandomForest.html}}. Os resultados foram os seguintes:
+  Como se pode observar, estes modelos não mostram muita diferença nos resultados, mesmo que a árvore de decisão tenha um resultado melhor nas métricas individuais, e o Random Forest tenha obtido um melhor resultado nas métricas de comparação. Decidimos tentar melhorá-los, tirando proveito destes resultados. Logo, treiná-mos mais 4 modelos \textit{Random Forest}, com parâmetros diferentes, especicamente na estratégia de divisão em cada nó. Mais promenores sobre este processo estão na documentação da classe \textit{RandomForest} \footnote{\url{https://spark.apache.org/docs/latest/api/python/reference/api/pyspark.mllib.tree.RandomForest.html}}. Os resultados pdoem ser observados na \autoref{tab:results2}.
   %{'subSetAcc': 0.024701919478158585, 'hammingLoss': 0.24197544066014365, 'microF1Measure': 0.84481655046291, 'regularF1': 0.8288088968104772}
   %{'subSetAcc': 0.023204833449179275, 'hammingLoss': 0.24422106970361263, 'microF1Measure': 0.844419634409416, 'regularF1': 0.8295224110560213}
   %{'subSetAcc': 0.023204833449179275, 'hammingLoss': 0.24422106970361263, 'microF1Measure': 0.844419634409416, 'regularF1': 0.8295224110560213}
   %{'subSetAcc': 0.02422071325455809, 'hammingLoss': 0.24346658587154765, 'microF1Measure': 0.8448010118874048, 'regularF1': 0.8297927984968329}
-
   \begin{table}[H]
     \centering
-    \caption{Resultados dos modelos 2}
+    \caption{Resultados dos segundos modelos}
     \setlength{\extrarowheight}{0pt}
     \begin{tabulary}{\textwidth}{ L|r r r r }
       %\toprule
@@ -197,19 +204,39 @@
       RF - sqrt/log2 & $0.0232$ & $0.2442$ & $0.84442$ & $0.8295$ \\
       RF - onethird & $0.0242$ & $0.2435$ & $0.84480$ & $\boldsymbol{0.8298}$ \\
     \end{tabulary}
-    \label{tab:results}
+    \label{tab:results2}
   \end{table}
 
   Como se pode observar, as diferenças são minúsculas o suficiente que dificilmente se considera um melhor que o outro. Ainda assim, o modelo \textit{RF} com estratégia \textit{all} tem um resultado individual melhor, e \textit{RF} com estratégia \textit{onethird} tem um resultado de comparação melhor. Como os resultados não parecem melhorar tanto assim, e como temos já bons resultados com os modelos apresentados, decidimos não continuar a modelar.
 
-  Pela a análise das matrizes de confusão (em anexo), podemos observar muitas das perguntas sem positivos ou negativos. Isto é devido à própria amosra que tinhamos acesso não ter muitas respostas positivas ou negativas para as perguntas em quastão. Isto devia ter sido verificado antes de começar, e devia ter-se adaptado a forma de divisão em conjunto de treino ou teste, ou devia ter-se usado validação cruzada.
+  Pela a análise das matrizes de confusão (em anexo), podemos observar muitas das perguntas sem positivos ou negativos. Isto é devido à própria amostra que tinhamos acesso não ter muitas respostas positivas ou negativas para as perguntas em quastão. Isto devia ter sido verificado antes de começar, e devia ter-se adaptado a forma de divisão em conjunto de treino ou teste, ou devia ter-se usado validação cruzada.
+
+  Para melhorar o resultado, além do referido podia-se também ter-se melhorado a limpeza dos dados, sendo que há muitas sessões com valores inválidos, que podiam ter sido tratados e/ou as sessões removidas do conjunto de treino.
 
   \begin{figure}[H]
     \centering
     \includegraphics[width=0.2\textwidth]{confusion.png}
-    \caption{exemplos de matrizes de confusão resultadas por rótulo}
+    \caption{Exemplos de matrizes de confusão resultadas por rótulo}
     \label{fig:confusion_matrix}
   \end{figure}
 
+  \subsection{Tempo de execução}
+  De forma a comparar as ferramentas que tinha-mos disponíveis, decidimos medir o tempo de execução dos 4 primeiro modelos apresentados, uma primeira vez com o ambiente local, outra com 5 clusters da Amazon EMR (AWS) . O ambiente local usado é composto por um AMD Ryzen 7 5800X com 8 cores (16 Threads). Os resultados podem ser observados na  \autoref{tab:time}.
+  \begin{table}[H]
+    \centering
+    \caption{Tempo de execução}
+    \setlength{\extrarowheight}{0pt}
+    \begin{tabulary}{\textwidth}{ L|r r r }
+      %\toprule
+      Modelo & \myalign{l}{Local (\si{\milli\second})} & \myalign{l}{AWS (\si{\milli\second})}  & \myalign{l}{Diferença (\%)} \\ \hline
+      Regressão Logística & $16.743$ & $51.014$ & $304.7$\\
+      SVM & $41.470$ & $112.787$ & $272.0$  \\
+      Árvore de Decisão & $9.962$ & $35.154$ & $352.9$\\
+      Random Forest & $15.247$ & $46.656$ & $306.0$\\
+    \end{tabulary}
+    \label{tab:time}
+  \end{table}
+
+  Como podemos observar, o uso do AWS no nosso caso piorou o tempo de execução. No entanto, não descartamos a ferramenta para ambientes pessoais menos potentes, e a sua utilidade também pode ser observada para outros casos específicos. Também não tiramos proveito de todas as funcionalidades do serviço, portanto estes números podem não estar optimizados.
 \end{document}
 
